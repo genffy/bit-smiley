@@ -176,11 +176,15 @@ export default function Home() {
             </tbody>
             <tfoot>
               <tr className="font-semibold text-gray-900 dark:text-white">
-                <th scope="row" className="px-6 py-3 text-base">Total: {total[0]}</th>
                 {
-                  config.map((item, idx)=>{
-                    return <td className="px-6 py-4" key={idx}>{total[item.type]}</td>
-                  })
+                  result.length ? <>
+                  <th scope="row" className="px-6 py-3 text-base">Total: {total[0]}</th>
+                    {
+                      config.map((item, idx)=>{
+                        return <td className="px-6 py-4" key={idx}>{total[item.type]}</td>
+                      })
+                    }  
+                  </> : <th colSpan={7} scope="row" className="text-center px-6 py-3 text-base">No Data</th>
                 }
               </tr>
             </tfoot>
