@@ -39,7 +39,7 @@ const config: ConfigType[] = [
   {
     "type": 3,
     "title": "The Truememe show",
-    "airdropAmount": 481.734393,
+    "airdropAmount": 0,
     "status": 2,
     "mediumLink": "https://medium.com/@bitsmiley/the-truememe-show-airdrop-rules-and-distribution-d4923f2db9c9",
     "date": "2024/10/15",
@@ -93,13 +93,14 @@ export default function Home() {
     const avaiableAddress = value.split(/,|;|\s/).map(d=>d.trim()).filter(d=>!!d)
     if(!avaiableAddress.length) return
     const data = avaiableAddress.map(async (item)=>{
-      const data = await fetch(`https://apis.bitsmiley.io/airdrop/getMyBitSmileyJourney/${item}`, {
+      const data = await fetch(`/api/airdrop?address=${item}&_t=${Date.now()}`, {
+        // const data = await fetch(`https://apis.bitsmiley.io/airdrop/getMyBitSmileyJourney/${item}`, {
         "headers": {
           "accept": "application/json",
         },
         "body": null,
-        "method": "GET",
-        // "mode": "cors",
+        "method": "POST",
+        // "mode": "no-cors",
         // "credentials": "omit"
       }).then(response => response.json()).catch(error => console.error(error));
       const res: ResultType = {} as ResultType
