@@ -8,5 +8,5 @@ export async function POST(request: Request) {
   })
   const data = await res.json()
 
-  return Response.json({ data })
+  return Response.json(data)
 }

@@ -5,6 +5,7 @@ type TypeType = 1 | 2 | 3 | 4 | 5 | 6
 type ConfigType = {
   type: TypeType;
   title: string;
+  shortTitle: string;
   airdropAmount: number;
   status: number;
   mediumLink: string;
@@ -12,6 +13,8 @@ type ConfigType = {
 }
 type ResultType = {
   address: string;
+  addressLong: string;
+  addressShort: string;
   value1: number;
   value2: number;
   value3: number;
@@ -23,50 +26,56 @@ const config: ConfigType[] = [
   {
     "type": 1,
     "title": 'Invalid bit-Disc Black Inscription gas cover',
+    "shortTitle": "Invalid",
     "airdropAmount": 0,
     "status": 0,
     "mediumLink": "https://medium.com/@bitsmiley/bitsmiley-harvest-season-airdrop-feeb4163f73f",
-    "date": "2024/10/17",
+    "date": "10/17",
   },
   {
     "type": 2,
     "title": "Stake bit-Disc Black (bitJade)",
+    "shortTitle": "bitJade",
     "airdropAmount": 0,
     "status": 0,
     "mediumLink": "https://medium.com/@bitsmiley/bitsmiley-harvest-season-airdrop-feeb4163f73f",
-    "date": "2024/10/28",
+    "date": "10/28",
   },
   {
     "type": 3,
     "title": "The Truememe show",
+    "shortTitle": "Truememe",
     "airdropAmount": 0,
     "status": 2,
     "mediumLink": "https://medium.com/@bitsmiley/the-truememe-show-airdrop-rules-and-distribution-d4923f2db9c9",
-    "date": "2024/10/15",
+    "date": "10/15",
   },
   {
     "type": 4,
     "title": "Pre-Season bitPoint",
+    "shortTitle": "Pre-S",
     "airdropAmount": 0,
     "status": 0,
     "mediumLink": "https://medium.com/@bitsmiley/bitsmiley-harvest-season-airdrop-feeb4163f73f",
-    "date": "2024/10/21",
+    "date": "10/21",
   },
   {
     "type": 5,
     "title": "Season One bitPoint",
+    "shortTitle": "S-One",
     "airdropAmount": 0,
     "status": 0,
     "mediumLink": "https://medium.com/@bitsmiley/bitsmiley-harvest-season-airdrop-feeb4163f73f",
-    "date": "2024/10/23",
+    "date": "10/23",
   },
   {
     "type": 6,
     "title": "Special: bitSmiley Community Events",
+    "shortTitle": "Role",
     "airdropAmount": 0,
     "status": 0,
     "mediumLink": "https://medium.com/@bitsmiley/bitsmiley-harvest-season-airdrop-feeb4163f73f",
-    "date": "2024/10/25",
+    "date": "10/25",
   }
 ]
 export default function Home() {
@@ -74,16 +83,37 @@ export default function Home() {
   const [result, setResult] = useState<ResultType[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [total, setTotal] = useState<number[]>([0,0,0,0,0,0,0])
-  function getValueKey(config: ConfigType): keyof Omit<ResultType, 'address'> {
+  function getValueKey(config: ConfigType): keyof Omit<ResultType, 'address'|'addressLong'|'addressShort'> {
     return `value${config.type}`
+  }
+  function copyAddress(address: string){
+    try{
+      navigator.clipboard.writeText(address)
+      alert(`Copied: ${address}`)
+    } catch(e){
+      alert(`Copy failed: ${(e as Error).message}`)
+    }
+  }
+  function formatNum(num: number){
+    if(!num) return '0'
+    return  `${num.toFixed()}`
+  }
+
+  function dynamicDisplay(value: string|number, short: string|number){
+    return <>
+      <span className="inline sm:hidden">{short}</span>
+      <span className="hidden sm:inline">{value}</span>
+    </>
   }
   function getRows(){
     return  result.map((item, idx)=>{
       return <tr key={idx} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-        <th scope="row"  className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.address}</th>
+        <th scope="row"  className="p-0.5 sm:px-3 font-medium text-gray-900 whitespace-nowrap dark:text-white" onClick={()=>copyAddress(item.address)}>
+          {dynamicDisplay(item.addressLong, item.addressShort)}
+        </th>
         {
           config.map((conf, i) => {
-            return <td className="px-6 py-4" key={i}>{item[getValueKey(conf)]}</td>
+            return <td className="p-0.5 sm:px-3" key={i}>{dynamicDisplay(item[getValueKey(conf)], formatNum(item[getValueKey(conf)]))}</td>
           })
         }
       </tr> 
@@ -94,19 +124,18 @@ export default function Home() {
     if(!avaiableAddress.length) return
     const data = avaiableAddress.map(async (item)=>{
       const data = await fetch(`/api/airdrop?address=${item}&_t=${Date.now()}`, {
-        // const data = await fetch(`https://apis.bitsmiley.io/airdrop/getMyBitSmileyJourney/${item}`, {
         "headers": {
           "accept": "application/json",
         },
         "body": null,
         "method": "POST",
-        // "mode": "no-cors",
-        // "credentials": "omit"
       }).then(response => response.json()).catch(error => console.error(error));
       const res: ResultType = {} as ResultType
       if(data.code === 0){
         const resData = data.data as unknown as ConfigType[]
         res.address = item
+        res.addressLong = item.replace(/^(.{6})(.*)(.{4})$/, "$1...$3")
+        res.addressShort = item.replace(/^(.{2})(.*)(.{4})$/, "$1.$3")
         resData.forEach((item)=>{
           res[getValueKey(item)] = item.airdropAmount
         })
@@ -137,12 +166,10 @@ export default function Home() {
     console.log(value)
     setValue(value)
   }
-  // useEffect(()=>{
-  //   handleSearch()
-  // }, [value])
+
   return (
-    <div className="min-h-screen p-8 pb-20 gap-16 sm:p-10 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
+    <div className="min-h-screen p-2 gap-16 sm:p-4 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-8 row-start-2 items-start sm:items-center">
         <div className="flex flex-col w-full">
           <textarea rows={5} 
           value={value}
@@ -156,15 +183,17 @@ export default function Home() {
                 <span className="sr-only">Loading...</span>
               </div>
             }
-          <table className={`w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 ${loading ? 'opacity-20': ''}`} >
+          <table className={`w-full text-xs sm:text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400 ${loading ? 'opacity-20': ''}`} >
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
               <tr>
-                <th scope="col" className="px-6 py-3">address</th>
+                <th scope="col" className="p-0.5 sm:px-3">{dynamicDisplay('address', 'evm')}</th>
                 {
                   config.map((item, idx)=>{
-                    return <th key={idx} scope="col" className="px-6 py-3">
-                      <div>{item.title}</div>
-                      <span className="font-light text-gray-500 dark:text-gray-400">Avaiable Check: <b className="font-bold text-orange-500">{item.date}</b></span>
+                    return <th key={idx} scope="col" className="p-0.5 sm:px-3">
+                      <div>
+                      {dynamicDisplay(item.title, item.shortTitle)}
+                      </div>
+                      <span className="font-light text-gray-500 dark:text-gray-400"><b className="font-bold text-orange-500">{item.date}</b></span>
                     </th>
                   })
                 }
@@ -179,13 +208,13 @@ export default function Home() {
               <tr className="font-semibold text-gray-900 dark:text-white">
                 {
                   result.length ? <>
-                  <th scope="row" className="px-6 py-3 text-base">Total: {total[0]}</th>
+                  <th scope="row" className="p-0.5 sm:px-3 text-base">{dynamicDisplay(`Total: ${total[0]}`, formatNum(total[0]))}</th>
                     {
                       config.map((item, idx)=>{
-                        return <td className="px-6 py-4" key={idx}>{total[item.type]}</td>
+                        return <td className="p-0.5 sm:px-3" key={idx}>{dynamicDisplay(total[item.type], formatNum(total[item.type]))}</td>
                       })
                     }  
-                  </> : <th colSpan={7} scope="row" className="text-center px-6 py-3 text-base">No Data</th>
+                  </> : <th colSpan={7} scope="row" className="text-center p-0.5 sm:px-3 text-base">No Data</th>
                 }
               </tr>
             </tfoot>
