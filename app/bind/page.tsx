@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ethers } from 'ethers'
 
-export const provider = new ethers.JsonRpcProvider('https://rpc.merlinchain.io/', {
+const provider = new ethers.JsonRpcProvider('https://rpc.merlinchain.io/', {
   chainId: 4200,
   name: 'merlin',
 })
